@@ -87,7 +87,7 @@ def text_reply(msg):
     global group_replying
     global g_rooms
     # 当消息是由自己发出的时候
-    if msg.FromUserName == myUserName:
+    if msg.ToUserName == 'filehelper':
         # 简单GM功能
         print_t("from_me:" + msg.Text)
         cmd_dic={
