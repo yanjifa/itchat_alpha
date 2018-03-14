@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #coding:utf-8
-import itchat,xlrd,time
+import itchat,xlrd,time,random
 from itchat.content import *
 from threading import Thread
 # 设置参数
@@ -75,7 +75,8 @@ def replay_group_thread(text):
     for i in range(len(g_rooms)):
         print_t('正在发送至群:'+g_rooms[i].NickName)
         itchat.send(text, toUserName=g_rooms[i].UserName)
-        time.sleep(1)
+        # 发一条随机延时2-10秒，群发容易被封号
+        time.sleep(random.randint(2,10))
     itchat.send('群发结束,已退出群发状态',toUserName='filehelper')
     group_reply = False
     group_replying = False
@@ -119,7 +120,7 @@ def text_reply(msg):
                 if msg.Text.split(':')[0] == '群发':
                     if group_reply == False:
                         group_reply = True
-                        names = '下条消息将发往以下%d个群组\n'
+                        names = '下条消息将发往以下%d个群组，请慎重使用此功能，有被封号风险\n'
                         index = 0
                         try:
                             index = int(msg.Text.split(':')[1])
@@ -159,6 +160,7 @@ def add_friend(msg):
     global table_p
     msg.user.verify()
     conf = table_p.row_values(1)
+    time.sleep(2)
     if conf:
         msg.user.send(get_replay_by_id(1))
     else:
@@ -166,6 +168,4 @@ def add_friend(msg):
 
 if __name__ == '__main__':
     itchat.auto_login()
-    # 获取自己的UserName
-    myUserName = itchat.get_friends(update=True)[0]['UserName']
     itchat.run()
