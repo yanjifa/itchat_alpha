@@ -3,28 +3,6 @@
 import itchat,xlrd,time,random
 from itchat.content import *
 from threading import Thread
-# 设置参数
-auto_reply = True
-group_reply = False
-group_replying = False
-show_log = True
-# 配置表
-workbook = xlrd.open_workbook(u'conf/reply.xls')
-table_p = workbook.sheet_by_name(u'personal')
-table_g = workbook.sheet_by_name(u'group')
-#记录所有群组
-all_rooms = []
-#记录要转发消息的群组
-g_rooms = []
-#初始化关键字表
-key_words = []
-ncols = table_p.ncols
-conf_key_word = table_p.col_values(3)
-for i in range(1,len(conf_key_word)):
-    tb = conf_key_word[i].split(',')
-    for n in range(0, len(tb)):
-        dic = {'word':tb[n], 'id':i}
-        key_words.insert(0,dic)
 
 def print_t(string):
     # 记录日志到文件
@@ -34,7 +12,6 @@ def print_t(string):
         print('{0} {1}'.format(time_s, string), file = f)
 
 def get_replay_by_id(index):
-    global table_p
     nrows = table_p.nrows
     if (index != 0 and index <= nrows - 1):
         conf = table_p.row_values(index)
@@ -44,14 +21,12 @@ def get_replay_by_id(index):
             return False
 
 def get_replay_id_by_msg(msg):
-    global key_words
     for i in range(0, len(key_words)):
         if msg.find(key_words[i]['word']) != -1:
             return key_words[i]['id']
     return 0
 
 def get_group(index):
-    global table_g
     global all_rooms
     nrows = table_g.nrows
     if index != 0 and index <= nrows - 1:
@@ -157,7 +132,6 @@ def text_reply(msg):
 @itchat.msg_register(FRIENDS)
 def add_friend(msg):
     # 自动同意加好友，并回复一条消息
-    global table_p
     msg.user.verify()
     conf = table_p.row_values(1)
     time.sleep(2)
@@ -167,5 +141,28 @@ def add_friend(msg):
         msg.user.send('你好,很高兴认识你!')
 
 if __name__ == '__main__':
+    # 设置参数
+    auto_reply = True
+    group_reply = False
+    group_replying = False
+    show_log = True
+    # 配置表
+    workbook = xlrd.open_workbook(u'conf/reply.xls')
+    table_p = workbook.sheet_by_name(u'personal')
+    table_g = workbook.sheet_by_name(u'group')
+    #记录所有群组
+    all_rooms = []
+    #记录要转发消息的群组
+    g_rooms = []
+    #初始化关键字表-----------------------
+    key_words = []
+    ncols = table_p.ncols
+    conf_key_word = table_p.col_values(3)
+    for i in range(1,len(conf_key_word)):
+        tb = conf_key_word[i].split(',')
+        for n in range(0, len(tb)):
+            dic = {'word':tb[n], 'id':i}
+            key_words.insert(0,dic)
+    #-------------------------------------
     itchat.auto_login()
     itchat.run()
