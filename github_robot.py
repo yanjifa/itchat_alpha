@@ -5,35 +5,40 @@ from itchat.content import TEXT
 from http.server import HTTPServer, BaseHTTPRequestHandler
 
 host = ("0.0.0.0", 8888)
+rooms = []
 
 class Resquest(BaseHTTPRequestHandler):
     def do_POST(self):
+        global rooms
         self.send_response(200)
         self.send_header('Content-type', 'application/json')
         self.end_headers()
         try:
             datas = self.rfile.read(int(self.headers['content-length']))
             datas = json.loads(datas.decode(encoding='UTF-8',errors='strict'))
-            print(datas)
-            print(datas["commits"])
-            # print(datas["pusher"]["name"])
-            # print(datas["pusher"]["email"])
             self.wfile.write(json.dumps("ok", ensure_ascii=False).encode('utf-8'))
-            text = datas["pusher"]["name"] + " pushed branch at " + datas["repository"]["name"] + "\n"
+            branch = datas["ref"].split("/")[-1]
+            text = datas["pusher"]["name"] + " pushed branch " + branch + " at repository " + datas["repository"]["name"] + "\n"
             for commit in datas["commits"]:
-                text = text + str(commit) + "\n"
-            # text = text + datas["pusher"]["email"] + "\n"
-            print(text)
-
+                commit["id"] = commit["id"][0:7]
+                msg = "%(url)s\n %(message)s \n" % commit
+                text = text + msg
+            for room in rooms:
+                itchat.send(text, toUserName=room.UserName)
         except Exception as e:
             print('Error:', e)
         finally:
             print()
 
+def needNotify(room):
+    return room["NickName"] == "Wuli亲故们！"
 
 def after_login():
+    global rooms
+    rooms = itchat.get_chatrooms(update=True)
+    rooms = filter(needNotify, rooms)
     server = HTTPServer(host, Resquest)
-    # itchat.send("Starting server, listen at: " + host[0] + ":" + str(host[1]), toUserName ='filehelper')
+    itchat.send("Starting server, listen at: " + host[0] + ":" + str(host[1]), toUserName ='filehelper')
     server.serve_forever()
 
 @itchat.msg_register(TEXT)
@@ -44,6 +49,5 @@ def text_reply(msg):
 
 
 if __name__ == '__main__':
-    after_login()
-    # itchat.auto_login(enableCmdQR=2, loginCallback=after_login)
-    # itchat.run()
+    itchat.auto_login(enableCmdQR=2, loginCallback=after_login)
+    itchat.run()
