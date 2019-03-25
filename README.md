@@ -1,4 +1,4 @@
-# itchat_alpha
+# github_robot
 ## 主要功能
 
-1. github webhok ,push代码 微信消息推送
+1. github webhok ,push代码 通过 itchat 发送微信消息到指定群
