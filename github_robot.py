@@ -3,6 +3,8 @@
 import itchat, time, os, urllib, json
 from itchat.content import TEXT
 from http.server import HTTPServer, BaseHTTPRequestHandler
+from apscheduler.schedulers.blocking import BlockingScheduler
+from threading import Thread
 
 host = ("0.0.0.0", 8888)
 rooms = []
@@ -36,13 +38,32 @@ class Resquest(BaseHTTPRequestHandler):
 def need_notify(room):
     return room["NickName"] == "测试1群"
 
+def update():
+    try:
+        itchat.send("server heart beat" + time.strftime('%H:%M:%S',time.localtime(time.time())), toUserName='filehelper')
+    except Exception as e:
+        itchat.run()
+        print('Error:', e)
+
+def start_server():
+    server = HTTPServer(host, Resquest)
+    itchat.send("Starting server", toUserName ='filehelper')
+    server.serve_forever()
+
+def start_schd():
+    sched.add_job(update, 'interval', minutes=2)
+    sched.start()
+
 def after_login():
     global rooms
     rooms = itchat.get_chatrooms(update=True)
     rooms = list(filter(need_notify, rooms))
-    server = HTTPServer(host, Resquest)
-    itchat.send("Starting server", toUserName ='filehelper')
-    server.serve_forever()
+    thread=Thread(target=start_server)
+    thread.start()
+    start_schd()
+
+def after_logout():
+    sched.shutdown(wait=False)
 
 @itchat.msg_register(TEXT)
 def text_reply(msg):
@@ -52,5 +73,6 @@ def text_reply(msg):
 
 
 if __name__ == '__main__':
-    itchat.auto_login(enableCmdQR=2, loginCallback=after_login)
+    sched = BlockingScheduler()
+    itchat.auto_login(enableCmdQR=2, hotReload=True, loginCallback=after_login, exitCallback=after_logout)
     itchat.run()
