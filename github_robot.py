@@ -23,22 +23,25 @@ class Resquest(BaseHTTPRequestHandler):
                 commit["id"] = commit["id"][0:7]
                 msg = "%(url)s\n %(message)s \n" % commit
                 text = text + msg
+
             for room in rooms:
-                itchat.send(text, toUserName=room.UserName)
+                print("send to" + room["NickName"])
+                itchat.send(text, toUserName = room["UserName"])
+            print(text)
         except Exception as e:
             print('Error:', e)
         finally:
             print()
 
-def needNotify(room):
-    return room["NickName"] == "Wuli亲故们！"
+def need_notify(room):
+    return room["NickName"] == "测试1群"
 
 def after_login():
     global rooms
     rooms = itchat.get_chatrooms(update=True)
-    rooms = filter(needNotify, rooms)
+    rooms = list(filter(need_notify, rooms))
     server = HTTPServer(host, Resquest)
-    itchat.send("Starting server, listen at: " + host[0] + ":" + str(host[1]), toUserName ='filehelper')
+    itchat.send("Starting server", toUserName ='filehelper')
     server.serve_forever()
 
 @itchat.msg_register(TEXT)
