@@ -13,12 +13,12 @@ class Resquest(BaseHTTPRequestHandler):
         self.end_headers()
         try:
             datas = self.rfile.read(int(self.headers['content-length']))
-            datas = json.loads(datas.decode())
+            datas = json.loads(datas.decode(encoding='UTF-8',errors='strict'))
             print(datas)
             print(datas["commits"])
             # print(datas["pusher"]["name"])
             # print(datas["pusher"]["email"])
-            self.wfile.write(json.dumps("ok", ensure_ascii=False).encode())
+            self.wfile.write(json.dumps("ok", ensure_ascii=False).encode('utf-8'))
             text = datas["pusher"]["name"] + " pushed branch at " + datas["repository"]["name"] + "\n"
             for commit in datas["commits"]:
                 text = text + str(commit) + "\n"
